@@ -1,0 +1,128 @@
+(function($){
+	"use strict";
+
+    window.swiper_do_swipe_styles.perspective = {
+        horizontal: function(pointer, value, $pages, index){
+            var $page_current = $pages[index],
+                $page_before  = $pages[index - 1],
+                $page_after   = $pages[index + 1],
+                negative = (value < 0) ? -1 : 1;
+
+            if($page_current){
+                var page_current_value = negative * (Math.abs((value / window_width) * 2) * 90);
+                if(negative > 0) {
+                    $page_current.style[css.transform_origin] = "left center";
+                    $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
+                    $page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(left, #fff 70%,#ddd 100%)');
+                } else {
+                    $page_current.style[css.transform_origin] = "right center";
+                    $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
+                    $page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(right, #fff 70%,#ddd 100%)');
+                }
+                
+            }
+            if($page_before && negative < 0){
+                var page_before_value = Math.abs(value / window_width);
+                page_before_value = ((page_before_value * (2 - page_before_value)) * (window_width * 0.8));
+                page_before_value = page_before_value;
+                page_before_value -= window_width;
+                $page_before.style[css.transform] = "translateX(" + page_before_value + "px) rotateY(0deg)";
+            }
+            if($page_after && negative > 0){ //because we only animate either the before OR after, not both
+                var page_after_value = Math.abs(value / window_width);
+                page_after_value = ((page_after_value * (2 - page_after_value)) * (window_width * 0.8));
+                page_after_value = page_after_value * -negative;
+                page_after_value += window_width;
+                $page_after.style[css.transform] = "translateX(" + page_after_value + "px) rotateY(0deg)";
+            }
+        },
+        before_horizontal: function($pages, index){ // insert quagmire.gif here
+            var $page_current = $pages[index],
+                $page_before =  $pages[index - 1],
+                $page_after  =  $pages[index + 1];
+
+            $page_current.style.height    = window_height - 25 + "px"; //because this shows the box edges more. This number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
+            $page_current.style.minHeight = window_height - 25 + "px";
+            $page_current.style.opacity = 1;
+            $page_current.style.zIndex = 2;
+            $page_current.style.display = "";
+            $page_current.style[css.transform_origin] = "50% 50%";
+            if($page_before) {
+                $page_before.style.height    = window_height + "px";
+                $page_before.style.minHeight = window_height + "px";
+                $page_before.style.opacity = 1;
+                $page_before.style.zIndex = 2;
+                $page_before.style.display = "";
+                $page_before.style[css.transform_origin] = "50% 50%";
+            }
+            if($page_after) {
+                $page_after.style.height    = window_height + "px";
+                $page_after.style.minHeight = window_height + "px";
+                $page_after.style.opacity = 1;
+                $page_after.style.zIndex = 2;
+                $page_after.style.display = "";
+                $page_after.style[css.transform_origin] = "50% 50%";
+            }
+        },
+        after_horizontal: function($pages, index){
+            var $page_current = $pages[index],
+                $page_before =  $pages[index - 1],
+                $page_after  =  $pages[index + 1];
+
+            $page_current.style.height = "auto";
+            $page_current.style.minHeight = "100%";
+            $page_current.style.backgroundImage = "";
+            if($page_before) {
+                $page_before.style.height     = "auto";
+                $page_before.style.minHeight  = "100%";
+                $page_current.style.backgroundImage = "";
+            }
+            if($page_after) {
+                $page_after.style.height    = "auto";
+                $page_after.style.minHeight = "100%";
+                $page_current.style.backgroundImage = "";
+            }
+        },
+        move_to_page: function($pages, i){
+            var $page_current = $pages[i],
+                $page_before  = $pages[i - 1],
+                $page_after   = $pages[i + 1];
+
+            if(this.has_been_setup) {
+                //because every subsequent call uses CSS transitions
+                document.body.classList.add("swiper-do-swipe-css-perspective-transition");
+            } else {
+                this.has_been_setup = true;
+            }
+            $page_current.style[css.transform] = "translate3d(0px, 0px, 0) rotateY(0deg)";
+            $page_current.style.opacity = 1;
+            $page_current.style.zIndex = 2;
+            if($page_before){
+                $page_before.style[css.transform] = "translate3d(-100%, 0px, 0) rotateY(-90deg) translate3d(-100%, 0, 0)";
+                $page_before.style.opacity = 0;
+                $page_before.style.zIndex = 1;
+            }
+            if($page_after){
+                $page_after.style[css.transform] = "translate3d(100%, 0px, 0) rotateY(90deg) translate3d(-100%, 0, 0)";
+                $page_after.style.opacity = 0;
+                $page_after.style.zIndex = 1;
+            }
+            if(i > 2) {
+                $pages.slice(0, i - 2).map(function($page){
+                    $page.style.display = "none";
+                });
+            }
+            if(i < $pages.length - 2){
+                $pages.slice(i + 2).map(function($page){
+                    $page.style.display = "none";
+                });
+            }
+        },
+        page_move_end: function(){
+            document.body.classList.remove("swiper-do-swipe-css-perspective-transition");
+        }
+    };
+
+    window.css.background_gradient = "%";
+ 
+}());

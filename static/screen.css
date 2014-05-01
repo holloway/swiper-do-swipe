@@ -1,0 +1,32 @@
+html, body {
+    padding:    0px;
+    margin:     0px;
+    min-width:  100%;
+    min-height: 100%;
+    background: #222;
+    font-family: sans-serif;
+}
+
+body > page {
+    text-align:center;
+}
+
+body > page ul {
+  list-style:none;
+}
+
+* {
+    -webkit-user-select: none;
+     -khtml-user-select: none;
+       -moz-user-select: -moz-none;
+         -o-user-select: none;
+            user-select: none;
+}
+
+input, textarea {
+    -webkit-user-select: text;
+     -khtml-user-select: text;
+       -moz-user-select: text;
+         -o-user-select: text;
+            user-select: text;
+}

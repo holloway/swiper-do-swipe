@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Swipe Pages Demo</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+        <link rel="stylesheet" type="text/css" href="static/swiper-do-swipe-perspective.css">
+        <style type="text/css">
+            html, body {
+                padding:    0px;
+                margin:     0px;
+                min-width:  100%;
+                min-height: 100%;
+                background: #222;
+                font-family: sans-serif;
+            }
+
+            body > page {
+                text-align:center;
+            }
+
+            body > page ul {
+              list-style:none;
+            }
+
+            * {
+                -webkit-user-select: none;
+                 -khtml-user-select: none;
+                   -moz-user-select: -moz-none;
+                     -o-user-select: none;
+                        user-select: none;
+            }
+
+            input, textarea {
+                -webkit-user-select: text;
+                 -khtml-user-select: text;
+                   -moz-user-select: text;
+                     -o-user-select: text;
+                        user-select: text;
+            }
+        </style>
+    </head>
+    <body>
+        <page style="background:white">
+            <h1>swiper-do-swipe.js <abbr title="version">v</abbr>0.4</h1>
+            <h2>(Webkit only, for now)</h2>
+            <p>Demo: swipe the page left or right (touch or mouse).</p>
+            <p>Features:</p>
+            <ul>
+                <li>it's fast (using requestAnimationFrame and other optimisations)</li>
+                <li>live animation feedback during swipe (not just a 'completed swipe' animation)</li>
+                <li>designed to be extensible with other swipe animations</li>
+            </ul>
+            <p>(vertical scrolling not really supported yet, but soon...)</p>
+        </page>
+        <page style="background:white">
+            <h1>page 2</h1>
+        </page>
+        <page style="background:white">
+            <h1>page 3</h1>
+        </page>
+        <page style="background:white">
+            <h1>page 4</h1>
+        </page>
+        <page style="background:white">
+            <h1>page 5</h1>
+            <p>you can't swipe further i won't let you!</p>
+        </page>
+
+        <script type="text/javascript" src="static/swiper-do-swipe.js"></script>
+        <script type="text/javascript" src="static/swiper-do-swipe-perspective.js"></script>
+        <script type="text/javascript">
+            var node_list = document.querySelectorAll("body > page");
+            var array_of_elements = Array.prototype.slice.call(node_list);
+            var swiper = swiper_do_swipe(array_of_elements, swiper_do_swipe_styles.perspective);
+        </script>
+    </body>
+</html>
