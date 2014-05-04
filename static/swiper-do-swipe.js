@@ -2,8 +2,8 @@
 	"use strict";
 
     var defaults = {
-            page_turn_at: 150, // horizontally, in pixels
-            page_turn_animate_at: 20, // horizontally, in pixels
+            page_turn_at: 50, // horizontally, in pixels
+            page_turn_animate_at: 10, // horizontally, in pixels
             begin_scroll_at: 10, // begin scrolling, in pixels
             page_scroll_at: 10 //vertically, in pixels
         };
@@ -30,13 +30,13 @@
             style: style,
             init: function(){
                 this.init_$pages();
-                document.addEventListener('scroll',     prevent_default,  false);
-                document.addEventListener('touchstart', this.touch.start, false);
-                document.addEventListener('touchmove',  this.touch.move,  false);
-                document.addEventListener('touchend',   this.pointer.end, false);
-                document.addEventListener('mousedown',  this.mouse.start, false); // note these mouse events are removed if touch.start is called once
-                document.addEventListener('mousemove',  this.mouse.move,  false);
-                document.addEventListener('mouseup',    this.pointer.end, false);
+                document.addEventListener('scroll',     prevent_default,   false);
+                document.addEventListener('touchstart', _this.touch.start, false);
+                document.addEventListener('touchmove',  _this.touch.move,  false);
+                document.addEventListener('touchend',   _this.pointer.end, false);
+                document.addEventListener('mousedown',  _this.mouse.start, false); // note these mouse events are removed if touch.start is called once
+                document.addEventListener('mousemove',  _this.mouse.move,  false);
+                document.addEventListener('mouseup',    _this.pointer.end, false);
                 this.move_to_page(0);
             },
             init_$pages: function(){
@@ -48,11 +48,11 @@
                     }
                     _this.page_index_by_id[id] = i;
                     _this.page_id_by_index[i] = id;
+                    $page.style.display   = "block";
+                    $page.style.minHeight = "100%";
                     $page.scroll_y = 0;
                     $page.style.width     = "100%";
-                    $page.style.minHeight = "100%";
                     $page.style.minWidth  = "100%";
-                    $page.style.display   = "block";
                     $page.style.position  = "absolute";
                     $page.style.overflow  = "hidden";
                     $page.style[css.transform_style] = "preserve-3d";
@@ -65,12 +65,22 @@
                 animation_id: undefined,
                 current_style: undefined,
                 start: function(event){
-                    var pointer = _this.pointer;
+                    var pointer = _this.pointer,
+                        $page_before = _this.$pages[_this.index - 1],
+                        $page_after  = _this.$pages[_this.index + 1];
 
                     pointer.dragging = true;
                     pointer.drag.distance.x = 0;
-                    pointer.drag.distance.y = 0;
+                    pointer.drag.distance.y = _this.$pages[_this.index].scroll_y;
                     pointer.drag_direction = false;
+                    if($page_before) {
+                        $page_before.scroll_y = 0;
+                        $page_before.style.marginTop = 0;
+                    }
+                    if($page_after) {
+                        $page_after .scroll_y = 0;
+                        $page_after.style.marginTop = 0;
+                    }
                     if(pointer.animation_id){
                         window.cancelAnimationFrame(pointer.animation_id);
                     }
@@ -78,27 +88,41 @@
                 },
                 move: function(event){
                     var pointer     = _this.pointer,
-                        distance    = pointer.drag.distance;
+                        distance    = pointer.drag.distance,
+                        $page_current = _this.$pages[_this.index];
 
+                    distance.y += $page_current.scroll_y;
                     if(pointer.drag_direction !== false) return;
-
                     if(Math.abs(distance.x) > _this.options.page_turn_animate_at){
                         pointer.drag_direction = "horizontal";
+                        if(_this.style.reduce_size_during_horizontal_scroll !== false) _this.reduce_size_before_horizontal_scroll();
                         if(_this.style.before_horizontal) _this.style.before_horizontal(_this.$pages, _this.index);
-                    } else if(Math.abs(distance.y) > _this.options.begin_scroll_at) {
+                    } else if(Math.abs(distance.y - $page_current.scroll_y) > _this.options.begin_scroll_at) {
                         pointer.drag_direction = "vertical";
+                        $scrollbar.classList.add("animate");
+                        $scrollbar.classList.add("on");
+                        $page_current.scroll_limit = $page_current.offsetHeight - window_height;
+                        $page_current.scrollbar_ratio = (window_height - $scrollbar.offsetHeight - scrollbar_buffer) / $page_current.scroll_limit;
                     }
                 },
-                animate: function(){ //called at 60fps, initially from pointer.start
-                    var pointer     = _this.pointer,
-                        distance    = pointer.drag.distance;
+                animate: function(){ //called under a requestAnimationFrame at ~60fps, initially from pointer.start
+                    var pointer  = _this.pointer,
+                        distance = pointer.drag.distance,
+                        $page;
 
                     switch(pointer.drag_direction){
                         case "horizontal":
-                            _this.style.horizontal(pointer, distance.x, $pages, _this.index);
+                            if(_this.style.horizontal) _this.style.horizontal(pointer, distance.x, $pages, _this.index);
                             break;
                         case "vertical":
-                            _this.$pages[_this.index].style[css.transform] = "translateY(" + -distance.y + "px)";
+                            $page = _this.$pages[_this.index];
+                            if(distance.y < 0) {
+                                 distance.y = 0;
+                            } else if (distance.y > $page.scroll_limit) {
+                                distance.y = $page.scroll_limit;
+                            }
+                            $page.style[css.transform] = "translateY(" + -distance.y + "px)";
+                            $scrollbar.style[css.transform] = "translateY(" + (distance.y * $page.scrollbar_ratio) + "px)";
                             break;
                     }
                     pointer.animation_id = window.requestAnimationFrame(pointer.animate);
@@ -112,17 +136,16 @@
                     pointer.animation_id = undefined;
                     switch(pointer.drag_direction){
                         case "horizontal":
-                            if(_this.style.after_horizontal){
-                                _this.style.after_horizontal(_this.$pages, index);
-                            }
-                            if(Math.abs(pointer.drag.distance.x) < _this.options.page_turn_at) {
-                                _this.move_to_page(index); // move to current page
-                            } else {
+                            if(_this.style.reduce_size_during_horizontal_scroll !== false) _this.restore_size_after_horizontal_scroll();
+                            if(_this.style.after_horizontal) _this.style.after_horizontal(_this.$pages, index);
+                            if(Math.abs(pointer.drag.distance.x) >= _this.options.page_turn_at) {
                                 index += (pointer.drag.distance.x < 0) ? -1 : 1;
                                 _this.move_to_page(index);
                             }
                             break;
                         case "vertical":
+                            $scrollbar.classList.add("animate");
+                            $scrollbar.classList.remove("on");
                             $pages[index].scroll_y = pointer.drag.distance.y;
                             break;
                     }
@@ -161,6 +184,8 @@
                 start: function(event){
                     var position = _this.mouse.position(event),
                         pointer  = _this.pointer;
+
+                    event.preventDefault();
                     pointer.drag.start.x = position.x;
                     pointer.drag.start.y = position.y;
                     pointer.start(event);
@@ -170,6 +195,7 @@
                         position;
 
                     if(!pointer.dragging) return;
+                    event.preventDefault();
                     position = _this.mouse.position(event);
                     pointer.drag.distance.x = pointer.drag.start.x - position.x;
                     pointer.drag.distance.y = pointer.drag.start.y - position.y;
@@ -185,13 +211,46 @@
             move_to_page: function(i){
                 var $pages = _this.$pages;
                 
-                i = Math.max(Math.min(i, $pages.length - 1), 0); // make sure we're exceeding the range of $pages
+                i = Math.max(Math.min(i, $pages.length - 1), 0); // make sure we're not exceeding the range of $pages
                 _this.style.move_to_page($pages, i);
                 _this.index = i;
             },
-            
+            reduce_size_before_horizontal_scroll: function(){
+                var $page_current = _this.$pages[_this.index];
+
+                $page_current.style.height    = window_height - 25 + "px"; //because this shows the box edges more. This number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
+                $page_current.style.minHeight = window_height - 25 + "px";
+                $page_current.scrollTop = $page_current.scroll_y; //
+            },
+            restore_size_after_horizontal_scroll: function(){
+                var $page_current = _this.$pages[_this.index],
+                    $page_before =  _this.$pages[_this.index - 1],
+                    $page_after  =  _this.$pages[_this.index + 1];
+
+                $page_current.scrollTop = 0;
+                $page_current.style.height = "auto";
+                $page_current.style.minHeight = "100%";
+                $page_current.style[css.transform] = "translateY(" + -$page_current.scroll_y + "px)";
+                if($page_before) {
+                    $page_before.style.height     = "auto";
+                    $page_before.style.minHeight  = "100%";
+                }
+                if($page_after) {
+                    $page_after.style.height    = "auto";
+                    $page_after.style.minHeight = "100%";
+                }
+            },
             page_index_by_id: {},
             page_id_by_index: {},
+            dispose: function(){
+                document.removeEventListener('scroll',     prevent_default);
+                document.removeEventListener('touchstart', _this.touch.start);
+                document.removeEventListener('touchmove',  _this.touch.move);
+                document.removeEventListener('touchend',   _this.pointer.end);
+                document.removeEventListener('mousedown',  _this.mouse.start);
+                document.removeEventListener('mousemove',  _this.mouse.move);
+                document.removeEventListener('mouseup',    _this.pointer.end);
+            }
         };
 
         _this.init();
@@ -200,126 +259,6 @@
 
     window.swiper_do_swipe_styles = {};
 
-    window.swiper_do_swipe_styles.perspective = {
-        horizontal: function(pointer, value, $pages, index){
-            var $page_current = $pages[index],
-                $page_before  = $pages[index - 1],
-                $page_after   = $pages[index + 1],
-                negative = (value < 0) ? -1 : 1;
-
-            if($page_current){
-                var page_current_value = negative * (Math.abs((value / window_width) * 2) * 90);
-                if(negative > 0) {
-                    $page_current.style[css.transform_origin] = "left center";
-                    $page_current.style[css.transform] = "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
-                } else {
-                    $page_current.style[css.transform_origin] = "right center";
-                    $page_current.backgroundImage = "-webkit-linear-gradient(left right, blue, red)";
-                    $page_current.style[css.transform] = "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
-                }
-                
-            }
-            if($page_before && negative < 0){
-                var page_before_value = Math.abs(value / window_width);
-                page_before_value = ((page_before_value * (2 - page_before_value)) * (window_width * 0.8));
-                page_before_value = page_before_value;
-                page_before_value -= window_width;
-                $page_before.style[css.transform] = "translateX(" + page_before_value + "px) rotateY(0deg)";
-            }
-            if($page_after && negative > 0){ //because we only animate either the before OR after, not both
-                var page_after_value = Math.abs(value / window_width);
-                page_after_value = ((page_after_value * (2 - page_after_value)) * (window_width * 0.8));
-                page_after_value = page_after_value * -negative;
-                page_after_value += window_width;
-                $page_after.style[css.transform] = "translateX(" + page_after_value + "px) rotateY(0deg)";
-            }
-        },
-        before_horizontal: function($pages, index){ // insert quagmire.gif here
-            var $page_current = $pages[index],
-                $page_before =  $pages[index - 1],
-                $page_after  =  $pages[index + 1],
-                during_animation_set_height_to = window_height - 50; //because this shows the box edges more. 50 is arbitrary (change it if you want) but it's a safe amount of pixels (not too few to be annoying on mobile)
-
-            $page_current.style.height    = during_animation_set_height_to + "px";
-            $page_current.style.minHeight = during_animation_set_height_to + "px";
-            $page_current.style.opacity = 1;
-            $page_current.style.zIndex = 2;
-            $page_current.style.display = "";
-            $page_current.style[css.transform_origin] = "50% 50%";
-
-            if($page_before) {
-                $page_before.style.height    = during_animation_set_height_to + "px";
-                $page_before.style.minHeight = during_animation_set_height_to + "px";
-                $page_before.style.opacity = 1;
-                $page_before.style.zIndex = 2;
-                $page_before.style.display = "";
-                $page_before.style[css.transform_origin] = "50% 50%";
-            }
-            if($page_after) {
-                $page_after.style.height    = during_animation_set_height_to + "px";
-                $page_after.style.minHeight = during_animation_set_height_to + "px";
-                $page_after.style.opacity = 1;
-                $page_after.style.zIndex = 2;
-                $page_after.style.display = "";
-                $page_after.style[css.transform_origin] = "50% 50%";
-            }
-        },
-        after_horizontal: function($page, index){
-            var $page_current = $pages[index],
-                $page_before =  $pages[index - 1],
-                $page_after  =  $pages[index + 1];
-
-            $page_current.style.height = "auto";
-            $page_current.style.minHeight = "100%";
-            if($page_before) {
-                $page_before.style.height     = "auto";
-                $page_before.style.minHeight  = "100%";
-            }
-            if($page_after) {
-                $page_after.style.height    = "auto";
-                $page_after.style.minHeight = "100%";
-            }
-        },
-        move_to_page: function($pages, i){
-            var $page_current = $pages[i],
-                $page_before  = $pages[i - 1],
-                $page_after   = $pages[i + 1];
-
-            if(this.has_been_setup) {
-                //because every subsequent call uses CSS transitions
-                document.body.classList.add("swiper-do-swipe-css-perspective-transition");
-            } else {
-                this.has_been_setup = true;
-            }
-            $page_current.style[css.transform] = "translate3d(0px, 0px, 0) rotateY(0deg)";
-            $page_current.style.opacity = 1;
-            $page_current.style.zIndex = 2;
-            if($page_before){
-                $page_before.style[css.transform] = "translate3d(-100%, 0px, 0) rotateY(-90deg) translate3d(-100%, 0, 0)";
-                $page_before.style.opacity = 0;
-                $page_before.style.zIndex = 1;
-            }
-            if($page_after){
-                $page_after.style[css.transform] = "translate3d(100%, 0px, 0) rotateY(90deg) translate3d(-100%, 0, 0)";
-                $page_after.style.opacity = 0;
-                $page_after.style.zIndex = 1;
-            }
-            if(i > 2) {
-                $pages.slice(0, i - 2).map(function($page){
-                    $page.style.display = "none";
-                });
-            }
-            if(i < $pages.length - 2){
-                $pages.slice(i + 2).map(function($page){
-                    $page.style.display = "none";
-                });
-            }
-        },
-        page_move_end: function(){
-            document.body.classList.remove("swiper-do-swipe-css-perspective-transition");
-        }
-    };
-  
     var tf = function(fn, context){ // tf stands for this_function
         context = context || this;
         if(fn === undefined) { console.trace(); alert("Error: this_function called with non-existant function. See console.log"); return; }
@@ -333,7 +272,6 @@
         event.preventDefault();
     };
 
-    
     var recalculate_window_dimensions = function(){ //is this even faster than direct access? TODO: benchmark this
         window.window_width =  window.innerWidth;
         window.window_height = window.innerHeight;
@@ -409,5 +347,16 @@
                 clearTimeout(id);
             };
     }());
+
+    var scrollbar_animation_end = function(){
+        $scrollbar.classList.remove("animate");
+    };
+
+    var $scrollbar = document.createElement("div");
+    document.body.appendChild($scrollbar);
+    $scrollbar.className = "swiper-do-swipe-scrollbar";
+    $scrollbar.addEventListener(css.transition_end, scrollbar_animation_end);
+    var scrollbar_buffer = 20; // 10 pixels from top and bottom = 20 total
+
 
 }());

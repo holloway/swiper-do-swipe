@@ -8,18 +8,15 @@
                 $page_after   = $pages[index + 1],
                 negative = (value < 0) ? -1 : 1;
 
-            if($page_current){
-                var page_current_value = negative * (Math.abs((value / window_width) * 2) * 90);
-                if(negative > 0) {
-                    $page_current.style[css.transform_origin] = "left center";
-                    $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
-                    $page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(left, #fff 70%,#ddd 100%)');
-                } else {
-                    $page_current.style[css.transform_origin] = "right center";
-                    $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
-                    $page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(right, #fff 70%,#ddd 100%)');
-                }
-                
+            var page_current_value = negative * (Math.abs((value / window_width) * 2) * 90);
+            if(negative > 0) {
+                $page_current.style[css.transform_origin] = "left center";
+                $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg) ";
+                $page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(left, #fff 70%,#ddd 100%)');
+            } else {
+                $page_current.style[css.transform_origin] = "right center";
+                $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
+                $page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(right, #fff 70%,#ddd 100%)');
             }
             if($page_before && negative < 0){
                 var page_before_value = Math.abs(value / window_width);
@@ -41,8 +38,9 @@
                 $page_before =  $pages[index - 1],
                 $page_after  =  $pages[index + 1];
 
-            $page_current.style.height    = window_height - 25 + "px"; //because this shows the box edges more. This number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
-            $page_current.style.minHeight = window_height - 25 + "px";
+            //
+            //console.log("wrwerer"); $page_current.scroll_y - 
+
             $page_current.style.opacity = 1;
             $page_current.style.zIndex = 2;
             $page_current.style.display = "";
@@ -69,17 +67,11 @@
                 $page_before =  $pages[index - 1],
                 $page_after  =  $pages[index + 1];
 
-            $page_current.style.height = "auto";
-            $page_current.style.minHeight = "100%";
             $page_current.style.backgroundImage = "";
             if($page_before) {
-                $page_before.style.height     = "auto";
-                $page_before.style.minHeight  = "100%";
                 $page_current.style.backgroundImage = "";
             }
             if($page_after) {
-                $page_after.style.height    = "auto";
-                $page_after.style.minHeight = "100%";
                 $page_current.style.backgroundImage = "";
             }
         },
@@ -94,7 +86,7 @@
             } else {
                 this.has_been_setup = true;
             }
-            $page_current.style[css.transform] = "translate3d(0px, 0px, 0) rotateY(0deg)";
+            $page_current.style[css.transform] = "translate3d(0px, 0px, 0) rotateY(0deg) translateY(" + -$page_current.scroll_y + "px)";
             $page_current.style.opacity = 1;
             $page_current.style.zIndex = 2;
             if($page_before){
@@ -124,5 +116,5 @@
     };
 
     window.css.background_gradient = "%";
- 
+
 }());

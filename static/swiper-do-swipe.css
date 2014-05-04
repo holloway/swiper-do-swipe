@@ -1,0 +1,50 @@
+html, body {
+    padding: 0px;
+    margin: 0px;
+    min-width: 100%;
+    min-height: 100%;
+    overflow: hidden;
+}
+
+* {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: -moz-none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+input, textarea {
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -o-user-select: text;
+    user-select: text;
+}
+
+.swiper-do-swipe-scrollbar {
+    width: 10px;
+    height: 300px;
+    background: #cccccc;
+    background: rgba(100,100,100,0.5);
+    border-radius: 5px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 1002;
+    pointer-events: none;
+    cursor: default;
+    opacity: 0;
+}
+
+.swiper-do-swipe-scrollbar.animate {
+    -webkit-transition: all 0.2s ease-out;
+    -moz-transition: all 0.2s ease-out;
+    -ms-transition: all 0.2s ease-out;
+    -o-transition: all 0.2s ease-out;
+    transition: all 0.2s ease-out;
+}
+
+.swiper-do-swipe-scrollbar.on {
+    opacity: 1;
+} 
