@@ -22,16 +22,18 @@
     </head>
     <body>
         <section style="background:white">
-            <h1>swiper-do-swipe.js <abbr title="version">v</abbr>0.4</h1>
+            <h1>swiper-do-swipe.js <abbr title="version">v</abbr>0.5</h1>
             <h2>(Webkit/Firefox only, for now)</h2>
-            <p>Demo: swipe the page left or right (touch or mouse).</p>
+            <p>Demo: swipe the page left or right, or up and down (touch or mouse).</p>
             <p>Features:</p>
             <ul>
-                <li>it's fast (using requestAnimationFrame and other optimisations)</li>
+                <li>it's fast (using requestAnimationFrame, fast clicking, and other optimisations)</li>
                 <li>live animation feedback during swipe (not just a 'completed swipe' animation like jQuery Mobile <i>et al</i>)</li>
                 <li>designed to be extensible with other swipe animations</li>
+                <li>has callback for page turning that you can tie into your mobile app</li>
+                <li>no dependencies</li>
             </ul>
-            <p>(vertical scrolling not really supported yet, but soon...)</p>
+            <p>Known issues: scrollbar size is a bit wrong. will fix for next version</p>
             <ol>
                 <li>more content to show scrolling.</li>
                 <li>more content to show scrolling.</li>
@@ -41,7 +43,23 @@
                 <li>more content to show scrolling.</li>
                 <li>more content to show scrolling.</li>
                 <li>more content to show scrolling.</li>
-                <li><a href="javascript:alert('testing click events this is a href=javascript:// one because no one does that anymore')">more content to show scrolling.</a></li>
+                <li><a href="javascript:alert('testing click events this is a href=javascript: one because no one does that anymore')">showing that click events still work.</a></li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li><a href="javascript:alert('testing click events this is a href=javascript: one because no one does that anymore')">more content to show scrolling.</a></li>
                 <li>more content to show scrolling.</li>
                 <li>more content to show scrolling.</li>
                 <li>more content to show scrolling.</li>
@@ -96,18 +114,70 @@
                 <li>more content to show scrolling.</li>
                 <li>more content to show scrolling.</li>
                 <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
+                <li>more content to show scrolling.</li>
             </ol>
         </section>
 
         <script type="text/javascript" src="static/swiper-do-swipe.js"></script>
         <script type="text/javascript" src="static/swiper-do-swipe-perspective.js"></script>
         <script type="text/javascript">
-            
-            var swiper = swiper_do_swipe(document.querySelectorAll("body > section"), swiper_do_swipe_styles.perspective);
 
-            swiper.onchange(function(event, $page, index){
+            var page_turn = function(event, $page, index){
                 console.log($page, index);
-            })
+            }
+            
+            var swiper = swiper_do_swipe(
+                            document.querySelectorAll("body > section"),
+                            swiper_do_swipe_styles.perspective);
+
+            swiper.onchange(page_turn);
         </script>
     </body>
 </html>

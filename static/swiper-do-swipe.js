@@ -16,6 +16,7 @@
         var property,
             _this;
 
+        //ensure that $pages is just an array of elements
         if($pages.jquery){
             $pages = $pages.get();
         } else if($pages instanceof NodeList){
@@ -29,7 +30,7 @@
         }
 
         _this = {
-            version: 0.1,
+            version: 0.5,
             options: options,
             $pages:  $pages,
             index: 0,
@@ -263,17 +264,17 @@
                     $page_before =  _this.$pages[_this.index - 1],
                     $page_after  =  _this.$pages[_this.index + 1];
 
-                $page_current.style.height    = window_height - 25 + "px"; //because this shows the box edges more. This number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
+                $page_current.style.height    = window_height - 25 + "px"; //because this shows the edges more. The number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
                 $page_current.style.minHeight = window_height - 25 + "px";
                 $page_current.scrollTop = $page_current.scroll_y;
                 if($page_before){
-                    $page_before.style.height    = window_height - 5 + "px"; //because this shows the box edges more. This number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
-                    $page_before.style.minHeight = window_height - 5 + "px";
+                    $page_before.style.height    = window_height + "px";
+                    $page_before.style.minHeight = window_height + "px";
                     $page_before.scrollTop = $page_current.scroll_y;
                 }
                 if($page_after){
-                    $page_after.style.height    = window_height - 50 + "px"; //because this shows the box edges more. This number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
-                    $page_after.style.minHeight = window_height - 50 + "px";
+                    $page_after.style.height    = window_height + "px";
+                    $page_after.style.minHeight = window_height + "px";
                     $page_after.scrollTop = $page_current.scroll_y;
                 }
             },
@@ -413,6 +414,5 @@
     $scrollbar.className = "swiper-do-swipe-scrollbar";
     $scrollbar.addEventListener(css.transition_end, scrollbar_animation_end);
     var scrollbar_buffer = 20; // 10 pixels from top and bottom = 20 total
-
 
 }());
