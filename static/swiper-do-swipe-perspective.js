@@ -21,7 +21,6 @@
             if($page_before && negative < 0){
                 var page_before_value = Math.abs(value / window_width);
                 page_before_value = ((page_before_value * (2 - page_before_value)) * (window_width * 0.8));
-                page_before_value = page_before_value;
                 page_before_value -= window_width;
                 $page_before.style[css.transform] = "translateX(" + page_before_value + "px) rotateY(0deg)";
             }
@@ -37,6 +36,8 @@
             var $page_current = $pages[index],
                 $page_before =  $pages[index - 1],
                 $page_after  =  $pages[index + 1];
+
+            window.reduce_size_before_horizontal_scroll($pages, index, 25);
 
             $page_current.style.opacity = 1;
             $page_current.style.zIndex = 2;

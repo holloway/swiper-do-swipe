@@ -5,35 +5,53 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
         <link rel="stylesheet" type="text/css" href="static/swiper-do-swipe.css">
         <link rel="stylesheet" type="text/css" href="static/swiper-do-swipe-perspective.css">
-        <style type="text/css">
-            html,body {
-                background: #222;
-                font-family: sans-serif;
-            }
-
-            body > section {
-                text-align:center;
-            }
-
-            body > section ul {
-              list-style:none;
-            }
-        </style>
+        <link rel="stylesheet" type="text/css" href="screen.css">
     </head>
     <body>
         <section style="background:white">
             <h1>swiper-do-swipe.js <abbr title="version">v</abbr>0.5</h1>
-            <h2>(Webkit/Firefox only, for now)</h2>
-            <p>Demo: swipe the page left or right, or up and down (touch or mouse).</p>
-            <p>Features:</p>
+            <p>This software is for touch-screen web apps, and Phonegap-style apps, that want swiping and scrolling with 'pages' arranged like this</p>
+            <table border="1" class="device">
+                <tr>
+                    <td class="here">Page1<br><small>you are here</small></td>
+                    <td>Page2</td>
+                    <td>Page3</td>
+                    <td>Page4</td>
+                </tr>
+            </table>
+            <p>It supports Android, mobile Firefox, and iOS.</p>
+            <h2>Demo</h2>
+            <p>Swipe the page left or right, or up and down, with touch or mouse.</p>
+            <h2>Features</h2>
             <ul>
-                <li>it's fast (using requestAnimationFrame, fast clicking, and other optimisations)</li>
-                <li>live animation feedback during swipe (not just a 'completed swipe' animation like jQuery Mobile <i>et al</i>)</li>
-                <li>designed to be extensible with other swipe animations</li>
-                <li>has callback for page turning that you can tie into your mobile app</li>
-                <li>no dependencies</li>
+                <li>&bull; it's fast (using requestAnimationFrame, fast click, reduced GPU texture size during swipe, and other optimisations)</li>
+                <li>&bull; live animation feedback during swipe (not just a 'completed swipe' animation like jQuery Mobile <i>et al</i>)</li>
+                <li>&bull; designed to be extensible with other swipe animations</li>
+                <li>&bull; has callback for page turning that you can tie into your mobile app</li>
+                <li>&bull; no dependencies</li>
             </ul>
-            <p>Known issues: scrollbar size is a bit wrong. will fix for next version</p>
+            <p>Also it works around some significant Android bugs to do with scrolling and swiping (<a href="https://code.google.com/p/android/issues/detail?id=5491">1</a>, <a href="https://code.google.com/p/android/issues/detail?id=19827">2</a>).</p>
+            <h2>Usage</h2>
+            <pre>
+var swiper = swiper_do_swipe(
+    $("section"),
+    swiper_do_swipe_styles.perspective
+);
+
+var callback = function(event, $page, index){
+    console.log(event, $page, index);
+}
+
+swiper.onchange(callback).oninit(callback);
+</pre>
+            <h2>TODO</h2>
+            <ul>
+                <li>&bull; Support inertia scrolling </li>
+                <li>&bull; Support mousewheel/keyboard</li>
+            </ul>
+            <h2>Source</h2>
+            <p>on <a href="http://github.com/holloway/swiper-do-swipe">Github</a></p>
+            <h2>Filler content</h2>
             <ol>
                 <li>more content to show scrolling.</li>
                 <li>more content to show scrolling.</li>
@@ -78,16 +96,37 @@
             </ol>
         </section>
         <section style="background:white">
-            <h1>section 2</h1>
+            <h1>page 2</h1>
+            <table border="1" class="device">
+                <tr>
+                    <td>Page1</td>
+                    <td class="here">Page2<br><small>you are here</small></td>
+                    <td>Page3</td>
+                    <td>Page4</td>
+                </tr>
+            </table>
         </section>
         <section style="background:white">
             <h1>section 3</h1>
+            <table border="1" class="device">
+                <tr>
+                    <td>Page1</td>
+                    <td>Page2</td>
+                    <td class="here">Page3<br><small>you are here</small></td>
+                    <td>Page4</td>
+                </tr>
+            </table>
         </section>
         <section style="background:white">
             <h1>section 4</h1>
-        </section>
-        <section style="background:white">
-            <h1>section 5</h1>
+            <table border="1" class="device">
+                <tr>
+                    <td>Page1</td>
+                    <td>Page2</td>
+                    <td>Page3</td>
+                    <td class="here">Page4<br><small>you are here</small></td>
+                </tr>
+            </table>
             <p>you can't swipe further i won't let you!</p>
             <ol>
                 <li>more content to show scrolling.</li>
@@ -170,14 +209,15 @@
         <script type="text/javascript">
 
             var page_turn = function(event, $page, index){
-                console.log($page, index);
+                console.log(event, $page, index);
             }
             
             var swiper = swiper_do_swipe(
                             document.querySelectorAll("body > section"),
                             swiper_do_swipe_styles.perspective);
+            // bundled with 
 
-            swiper.onchange(page_turn);
+            swiper.onchange(page_turn).oninit(page_turn);
         </script>
     </body>
 </html>

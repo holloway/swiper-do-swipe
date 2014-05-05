@@ -39,9 +39,16 @@
                 this.init_$pages();
                 this.init_events();
                 this.move_to_page(0);
+                this.trigger("init");
             },
             onchange: function(callback){
                 _this.on("change", callback);
+                return _this;
+            },
+            oninit: function(callback){
+                _this.on("init", callback);
+                _this.trigger("init", _this.$pages[_this.index], _this.index);
+                return _this;
             },
             on: function(event_type, callback){
                 if(!_this._on_callbacks) _this._on_callbacks = {};
@@ -114,7 +121,7 @@
                     if(pointer.drag_direction !== false) return;
                     if(Math.abs(distance.x) > _this.options.page_turn_animate_at){
                         pointer.drag_direction = "horizontal";
-                        if(_this.style.reduce_size_during_horizontal_scroll !== false) _this.reduce_size_before_horizontal_scroll();
+                        if(_this.style.reduce_size_during_horizontal_scroll !== false) reduce_size_before_horizontal_scroll(_this.$pages, _this.index, 0); // 25 is arbitrary, but this reduction in height shows the edges more
                         if(_this.style.before_horizontal) _this.style.before_horizontal(_this.$pages, _this.index);
                     } else if(Math.abs(distance.y - $page_current.scroll_y) > _this.options.begin_scroll_at) {
                         pointer.drag_direction = "vertical";
@@ -259,25 +266,6 @@
                 _this.style.move_to_page($pages, i);
                 _this.index = i;
             },
-            reduce_size_before_horizontal_scroll: function(){
-                var $page_current = _this.$pages[_this.index],
-                    $page_before =  _this.$pages[_this.index - 1],
-                    $page_after  =  _this.$pages[_this.index + 1];
-
-                $page_current.style.height    = window_height - 25 + "px"; //because this shows the edges more. The number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
-                $page_current.style.minHeight = window_height - 25 + "px";
-                $page_current.scrollTop = $page_current.scroll_y;
-                if($page_before){
-                    $page_before.style.height    = window_height + "px";
-                    $page_before.style.minHeight = window_height + "px";
-                    $page_before.scrollTop = $page_current.scroll_y;
-                }
-                if($page_after){
-                    $page_after.style.height    = window_height + "px";
-                    $page_after.style.minHeight = window_height + "px";
-                    $page_after.scrollTop = $page_current.scroll_y;
-                }
-            },
             restore_size_after_horizontal_scroll: function(){
                 var $page_current = _this.$pages[_this.index],
                     $page_before =  _this.$pages[_this.index - 1],
@@ -310,7 +298,125 @@
         return _this;
     };
 
+    window.reduce_size_before_horizontal_scroll = function($pages, index, reduced_by_amount){
+        var $page_current = $pages[index],
+            $page_before =  $pages[index - 1],
+            $page_after  =  $pages[index + 1];
+
+        if(reduced_by_amount === undefined) reduced_by_amount = 0;
+        $page_current.style.height    = window_height - reduced_by_amount + "px";
+        $page_current.style.minHeight = window_height - reduced_by_amount + "px";
+        $page_current.scrollTop = $page_current.scroll_y;
+        if($page_before){
+            $page_before.style.height    = window_height - reduced_by_amount + "px";
+            $page_before.style.minHeight = window_height - reduced_by_amount + "px";
+            $page_before.scrollTop = 0;
+        }
+        if($page_after){
+            $page_after.style.height    = window_height - reduced_by_amount + "px";
+            $page_after.style.minHeight = window_height - reduced_by_amount + "px";
+            $page_after.scrollTop = 0;
+        }
+    };
+
     window.swiper_do_swipe_styles = {};
+
+    window.swiper_do_swipe_styles.flat = {
+        horizontal: function(pointer, value, $pages, index){
+            var $page_current = $pages[index],
+                $page_before  = $pages[index - 1],
+                $page_after   = $pages[index + 1],
+                negative = (value < 0) ? -1 : 1;
+
+            var page_current_value = -value;
+            $page_current.style[css.transform] = "translateX(" + page_current_value + "px) ";
+            if($page_before && negative < 0){
+                var page_before_value = Math.abs(value / window_width);
+                page_before_value = ((page_before_value * (2 - page_before_value)) * (window_width * 0.8));
+                page_before_value -= window_width;
+                $page_before.style[css.transform] = "translateX(" + page_before_value + "px)";
+            }
+            if($page_after && negative > 0){ //because we only animate either the before OR after, not both
+                var page_after_value = Math.abs(value / window_width);
+                page_after_value = ((page_after_value * (2 - page_after_value)) * (window_width * 0.8));
+                page_after_value = page_after_value * -negative;
+                page_after_value += window_width;
+                $page_after.style[css.transform] = "translateX(" + page_after_value + "px)";
+            }
+        },
+        before_horizontal: function($pages, index){ // insert quagmire.gif here
+            var $page_current = $pages[index],
+                $page_before =  $pages[index - 1],
+                $page_after  =  $pages[index + 1];
+
+            $page_current.style.opacity = 1;
+            $page_current.style.zIndex = 2;
+            $page_current.style.display = "";
+            $page_current.style[css.transform_origin] = "50% 50%";
+            if($page_before) {
+                $page_before.style.opacity = 1;
+                $page_before.style.zIndex = 2;
+                $page_before.style.display = "";
+            }
+            if($page_after) {
+                $page_after.style.opacity = 1;
+                $page_after.style.zIndex = 2;
+                $page_after.style.display = "";
+            }
+        },
+        after_horizontal: function($pages, index){
+            var $page_current = $pages[index],
+                $page_before =  $pages[index - 1],
+                $page_after  =  $pages[index + 1];
+
+            $page_current.style.backgroundImage = "";
+            if($page_before) {
+                $page_current.style.backgroundImage = "";
+            }
+            if($page_after) {
+                $page_current.style.backgroundImage = "";
+            }
+        },
+        move_to_page: function($pages, i){
+            var $page_current = $pages[i],
+                $page_before  = $pages[i - 1],
+                $page_after   = $pages[i + 1];
+
+            if(this.has_been_setup) {
+                //because every subsequent call uses CSS transitions
+                document.body.classList.add("swiper-do-swipe-css-perspective-transition");
+            } else {
+                this.has_been_setup = true;
+            }
+            $page_current.style[css.transform] = "translate3d(0px, 0px, 0) rotateY(0deg) translateY(" + -$page_current.scroll_y + "px)";
+            $page_current.style.opacity = 1;
+            $page_current.style.zIndex = 2;
+            if($page_before){
+                $page_before.style[css.transform] = "translate3d(-100%, 0px, 0) rotateY(-90deg) translate3d(-100%, 0, 0)";
+                $page_before.style.opacity = 0;
+                $page_before.style.zIndex = 1;
+            }
+            if($page_after){
+                $page_after.style[css.transform] = "translate3d(100%, 0px, 0) rotateY(90deg) translate3d(-100%, 0, 0)";
+                $page_after.style.opacity = 0;
+                $page_after.style.zIndex = 1;
+            }
+            if(i > 2) {
+                $pages.slice(0, i - 2).map(function($page){
+                    $page.style.display = "none";
+                });
+            }
+            if(i < $pages.length - 2){
+                $pages.slice(i + 2).map(function($page){
+                    $page.style.display = "none";
+                });
+            }
+        },
+        page_move_end: function(){
+            document.body.classList.remove("swiper-do-swipe-css-perspective-transition");
+        }
+    };
+
 
     var tf = function(fn, context){ // tf stands for this_function
         context = context || this;
@@ -401,10 +507,6 @@
             };
     }());
 
-    var scrollbar_animation_end = function(){
-        $scrollbar.classList.remove("animate");
-    };
-
     var nodelist_to_array = function(node_list){
         return Array.prototype.slice.call(node_list);
     };
@@ -412,7 +514,6 @@
     var $scrollbar = document.createElement("div");
     document.body.appendChild($scrollbar);
     $scrollbar.className = "swiper-do-swipe-scrollbar";
-    $scrollbar.addEventListener(css.transition_end, scrollbar_animation_end);
     var scrollbar_buffer = 20; // 10 pixels from top and bottom = 20 total
 
 }());
