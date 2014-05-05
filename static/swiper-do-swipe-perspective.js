@@ -38,24 +38,17 @@
                 $page_before =  $pages[index - 1],
                 $page_after  =  $pages[index + 1];
 
-            //
-            //console.log("wrwerer"); $page_current.scroll_y - 
-
             $page_current.style.opacity = 1;
             $page_current.style.zIndex = 2;
             $page_current.style.display = "";
             $page_current.style[css.transform_origin] = "50% 50%";
             if($page_before) {
-                $page_before.style.height    = window_height + "px";
-                $page_before.style.minHeight = window_height + "px";
                 $page_before.style.opacity = 1;
                 $page_before.style.zIndex = 2;
                 $page_before.style.display = "";
                 $page_before.style[css.transform_origin] = "50% 50%";
             }
             if($page_after) {
-                $page_after.style.height    = window_height + "px";
-                $page_after.style.minHeight = window_height + "px";
                 $page_after.style.opacity = 1;
                 $page_after.style.zIndex = 2;
                 $page_after.style.display = "";

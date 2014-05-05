@@ -12,9 +12,15 @@
     // $pages is an array of elements (not jQuery object, not nodeList - see index.html for how to do this if you want help),
     // style is value in swiper_do_swipe_styles (below) e.g. swiper_do_swipe_styles.perspective
     // and options override the defaults (optional)
-    window.swiper_do_swipe = function($pages, style, options){
+    window.swiper_do_swipe = function($pages, style, options, onchange_callback){
         var property,
             _this;
+
+        if($pages.jquery){
+            $pages = $pages.get();
+        } else if($pages instanceof NodeList){
+            $pages = nodelist_to_array($pages);
+        }
             
         options = options || {};
         for (property in defaults) {
@@ -30,24 +36,27 @@
             style: style,
             init: function(){
                 this.init_$pages();
-                document.addEventListener('scroll',     prevent_default,   false);
-                document.addEventListener('touchstart', _this.touch.start, false);
-                document.addEventListener('touchmove',  _this.touch.move,  false);
-                document.addEventListener('touchend',   _this.pointer.end, false);
-                document.addEventListener('mousedown',  _this.mouse.start, false); // note these mouse events are removed if touch.start is called once
-                document.addEventListener('mousemove',  _this.mouse.move,  false);
-                document.addEventListener('mouseup',    _this.pointer.end, false);
+                this.init_events();
                 this.move_to_page(0);
+            },
+            onchange: function(callback){
+                _this.on("change", callback);
+            },
+            on: function(event_type, callback){
+                if(!_this._on_callbacks) _this._on_callbacks = {};
+                if(!_this._on_callbacks[event_type]) _this._on_callbacks[event_type] = [];
+                _this._on_callbacks[event_type].push(callback);
+            },
+            trigger: function(event_type){
+                if(!_this._on_callbacks || !_this._on_callbacks[event_type]) return;
+                var callback;
+                for(var i = 0; i < _this._on_callbacks[event_type].length; i++){
+                    callback = _this._on_callbacks[event_type][i];
+                    callback.apply(_this, arguments);
+                }
             },
             init_$pages: function(){
                 _this.$pages.map(function($page, i){
-                    var id = $page.getAttribute("id");
-                    if(id === undefined){
-                        id = "page" + i;
-                        $page.setAttribute("id", id);
-                    }
-                    _this.page_index_by_id[id] = i;
-                    _this.page_id_by_index[i] = id;
                     $page.style.display   = "block";
                     $page.style.minHeight = "100%";
                     $page.scroll_y = 0;
@@ -56,8 +65,17 @@
                     $page.style.position  = "absolute";
                     $page.style.overflow  = "hidden";
                     $page.style[css.transform_style] = "preserve-3d";
-                    $page.addEventListener(css.transition_end, _this.style.page_move_end);
+                    if(_this.style.page_move_end) $page.addEventListener(css.transition_end, _this.style.page_move_end);
                 });
+            },
+            init_events: function(){
+                document.addEventListener('scroll',     prevent_default,   false);
+                document.addEventListener('touchstart', _this.touch.start, false);
+                document.addEventListener('touchmove',  _this.touch.move,  false);
+                document.addEventListener('touchend',   _this.pointer.end, false);
+                document.addEventListener('mousedown',  _this.mouse.start, false); // note these mouse events are removed if touch.start is called once
+                document.addEventListener('mousemove',  _this.mouse.move,  false);
+                document.addEventListener('mouseup',    _this.pointer.end, false);
             },
             pointer: { //a wrapper for touch/mouse interactions
                 dragging: false,
@@ -127,9 +145,11 @@
                     }
                     pointer.animation_id = window.requestAnimationFrame(pointer.animate);
                 },
-                end: function(event, distance){
-                    var index       = _this.index,
-                        pointer     = _this.pointer;
+                end: function(event){
+                    var index    = _this.index,
+                        pointer  = _this.pointer,
+                        distance = pointer.drag.distance,
+                        $page_current;
 
                     pointer.dragging = false;
                     window.cancelAnimationFrame(pointer.animation_id);
@@ -140,14 +160,27 @@
                             if(_this.style.after_horizontal) _this.style.after_horizontal(_this.$pages, index);
                             if(Math.abs(pointer.drag.distance.x) >= _this.options.page_turn_at) {
                                 index += (pointer.drag.distance.x < 0) ? -1 : 1;
+                                _this.trigger("change", _this.$pages[index], index);
                                 _this.move_to_page(index);
+                            } else {
+                                $page_current = _this.$pages[index];
+                                $page_current.style[css.transform] = "translateY(" + -$page_current.scroll_y + "px)";
+                                //_this.move_to_page(index);
                             }
                             break;
                         case "vertical":
                             $scrollbar.classList.add("animate");
                             $scrollbar.classList.remove("on");
-                            $pages[index].scroll_y = pointer.drag.distance.y;
+                            _this.$pages[index].scroll_y = pointer.drag.distance.y;
                             break;
+                        default: // then the touch/click has ended without a horizontal/vertical scroll, so it's a 'click', so generate a fake event...
+                            if(event.type.toLowerCase().match(/touchend/)){
+                                var click_event = document.createEvent('MouseEvents');
+                                var target = _this.touch.get_target(event.target);
+                                click_event.initMouseEvent(_this.touch.pseudo_event(target), true, true, window, 1, event.screenX, event.screenY, event.clientX, event.clientY, false, false, false, false, 0, null);
+                                click_event.forwardedTouchEvent = true;
+                                target.dispatchEvent(click_event);
+                            }
                     }
                     pointer.drag_direction = false;
                     pointer.drag.start.y = 0;
@@ -177,6 +210,16 @@
                     pointer.drag.distance.x = pointer.drag.start.x - event.touches[0].clientX;
                     pointer.drag.distance.y = pointer.drag.start.y - event.touches[0].clientY;
                     pointer.move(event);
+                },
+                get_target: function(target){
+                    if (target.nodeType === Node.TEXT_NODE) return target.parentNode;
+                    return target;
+                },
+                pseudo_event: function(target) {
+                    if(is_android && target.tagName.toUpperCase() === 'SELECT') {
+                        return 'mousedown';
+                    }
+                    return 'click';
                 }
             },
             mouse: {
@@ -216,11 +259,23 @@
                 _this.index = i;
             },
             reduce_size_before_horizontal_scroll: function(){
-                var $page_current = _this.$pages[_this.index];
+                var $page_current = _this.$pages[_this.index],
+                    $page_before =  _this.$pages[_this.index - 1],
+                    $page_after  =  _this.$pages[_this.index + 1];
 
                 $page_current.style.height    = window_height - 25 + "px"; //because this shows the box edges more. This number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
                 $page_current.style.minHeight = window_height - 25 + "px";
-                $page_current.scrollTop = $page_current.scroll_y; //
+                $page_current.scrollTop = $page_current.scroll_y;
+                if($page_before){
+                    $page_before.style.height    = window_height - 5 + "px"; //because this shows the box edges more. This number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
+                    $page_before.style.minHeight = window_height - 5 + "px";
+                    $page_before.scrollTop = $page_current.scroll_y;
+                }
+                if($page_after){
+                    $page_after.style.height    = window_height - 50 + "px"; //because this shows the box edges more. This number is arbitrary (change it if you want) but it's a noticible amount of pixels (not too few to be annoying on mobile)
+                    $page_after.style.minHeight = window_height - 50 + "px";
+                    $page_after.scrollTop = $page_current.scroll_y;
+                }
             },
             restore_size_after_horizontal_scroll: function(){
                 var $page_current = _this.$pages[_this.index],
@@ -230,18 +285,15 @@
                 $page_current.scrollTop = 0;
                 $page_current.style.height = "auto";
                 $page_current.style.minHeight = "100%";
-                $page_current.style[css.transform] = "translateY(" + -$page_current.scroll_y + "px)";
                 if($page_before) {
-                    $page_before.style.height     = "auto";
-                    $page_before.style.minHeight  = "100%";
+                    $page_before.style.height    = "auto";
+                    $page_before.style.minHeight = "100%";
                 }
                 if($page_after) {
                     $page_after.style.height    = "auto";
                     $page_after.style.minHeight = "100%";
                 }
             },
-            page_index_by_id: {},
-            page_id_by_index: {},
             dispose: function(){
                 document.removeEventListener('scroll',     prevent_default);
                 document.removeEventListener('touchstart', _this.touch.start);
@@ -252,8 +304,8 @@
                 document.removeEventListener('mouseup',    _this.pointer.end);
             }
         };
-
         _this.init();
+        if(onchange_callback) _this.onchange(onchange_callback);
         return _this;
     };
 
@@ -350,6 +402,10 @@
 
     var scrollbar_animation_end = function(){
         $scrollbar.classList.remove("animate");
+    };
+
+    var nodelist_to_array = function(node_list){
+        return Array.prototype.slice.call(node_list);
     };
 
     var $scrollbar = document.createElement("div");

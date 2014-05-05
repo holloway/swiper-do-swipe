@@ -102,9 +102,12 @@
         <script type="text/javascript" src="static/swiper-do-swipe.js"></script>
         <script type="text/javascript" src="static/swiper-do-swipe-perspective.js"></script>
         <script type="text/javascript">
-            var node_list = document.querySelectorAll("body > section");
-            var array_of_elements = Array.prototype.slice.call(node_list);
-            var swiper = swiper_do_swipe(array_of_elements, swiper_do_swipe_styles.perspective);
+            
+            var swiper = swiper_do_swipe(document.querySelectorAll("body > section"), swiper_do_swipe_styles.perspective);
+
+            swiper.onchange(function(event, $page, index){
+                console.log($page, index);
+            })
         </script>
     </body>
 </html>
