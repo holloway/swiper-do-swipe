@@ -5,7 +5,10 @@
             page_turn_at: 50, // horizontally, in pixels
             page_turn_animate_at: 10, // horizontally, in pixels
             begin_scroll_at: 10, // begin scrolling, in pixels
-            page_scroll_at: 10 //vertically, in pixels
+            page_scroll_at: 10, //vertically, in pixels
+            number_of_inertia_scroll_movements_to_capture: 5,
+            stop_inertia_scrolling_at: 1,
+            decrease_inertia_per_frame_by: 0.95
         };
 
     // Call swiper_do_swipe() with these parameters,
@@ -35,6 +38,7 @@
             $pages:  $pages,
             index: 0,
             style: style,
+            inertia_remaining: 0,
             init: function(){
                 this.init_$pages();
                 this.init_events();
@@ -107,6 +111,7 @@
                         $page_after .scroll_y = 0;
                         $page_after.style.marginTop = 0;
                     }
+                    _this.latest_inertia_scroll_movements = [];
                     if(pointer.animation_id){
                         window.cancelAnimationFrame(pointer.animation_id);
                     }
@@ -147,6 +152,10 @@
                             } else if (distance.y > $page.scroll_limit) {
                                 distance.y = $page.scroll_limit;
                             }
+                            _this.latest_inertia_scroll_movements.push(distance.y);
+                            if(_this.latest_inertia_scroll_movements.length > _this.options.number_of_inertia_scroll_movements_to_capture + 1) { // +1 because we need one more entry to calculate movements
+                                _this.latest_inertia_scroll_movements.shift();
+                            }
                             $page.style[css.transform] = "translateY(" + -distance.y + "px)";
                             $scrollbar.style[css.transform] = "translateY(" + (distance.y * $page.scrollbar_ratio) + "px)";
                             break;
@@ -177,9 +186,10 @@
                             }
                             break;
                         case "vertical":
-                            $scrollbar.classList.add("animate");
+                            $page_current = _this.$pages[index];
+                            $page_current.scroll_y = distance.y;
+                            _this.inertia_scroll_start();
                             $scrollbar.classList.remove("on");
-                            _this.$pages[index].scroll_y = pointer.drag.distance.y;
                             break;
                         default: // then the touch/click has ended without a horizontal/vertical scroll, so it's a 'click', so generate a fake event...
                             if(event.type.toLowerCase().match(/touchend/)){
@@ -236,6 +246,7 @@
                     var position = _this.mouse.position(event),
                         pointer  = _this.pointer;
 
+                    if(event.button === 2) return;
                     event.preventDefault();
                     pointer.drag.start.x = position.x;
                     pointer.drag.start.y = position.y;
@@ -245,6 +256,7 @@
                     var pointer  = _this.pointer,
                         position;
 
+                    if(event.button === 2) return;
                     if(!pointer.dragging) return;
                     event.preventDefault();
                     position = _this.mouse.position(event);
@@ -281,6 +293,33 @@
                 if($page_after) {
                     $page_after.style.height    = "auto";
                     $page_after.style.minHeight = "100%";
+                }
+            },
+            inertia_scroll_start: function(){
+                var acceleration = [],
+                    total = 0,
+                    average,
+                    i;
+
+                for(i = 1; i < _this.latest_inertia_scroll_movements.length; i++){
+                    total += _this.latest_inertia_scroll_movements[i] - _this.latest_inertia_scroll_movements[i - 1];
+                }
+                _this.inertia_remaining = total / (_this.latest_inertia_scroll_movements.length - 1);
+                _this.pointer.animation_id = window.requestAnimationFrame(_this.inertia_scroll);
+            },
+            inertia_scroll: function(){
+                var $page = _this.$pages[_this.index];
+
+                _this.inertia_remaining = _this.inertia_remaining * _this.options.decrease_inertia_per_frame_by;
+                $page.scroll_y += _this.inertia_remaining;
+                if($page.scroll_y < 0) {
+                     $page.scroll_y = 0;
+                } else if ($page.scroll_y > $page.scroll_limit) {
+                    $page.scroll_y = $page.scroll_limit;
+                }
+                $page.style[css.transform] = "translateY(" + -$page.scroll_y + "px)";
+                if(Math.abs(_this.inertia_remaining) > _this.options.stop_inertia_scrolling_at){
+                    _this.pointer.animation_id = window.requestAnimationFrame(_this.inertia_scroll);
                 }
             },
             dispose: function(){
