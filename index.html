@@ -22,6 +22,10 @@
             <p>It supports Android, mobile Firefox, and iOS.</p>
             <h2>Demo</h2>
             <p>Swipe the page left or right, or up and down, with touch or mouse.</p>
+            <p>And choose a page effect if you want it <select id="effect">
+                <option value="flat">Flat</option>
+                <option value="perspective">Perspective</option>
+            </select></p>
             <h2>Features</h2>
             <ul>
                 <li>&bull; it's fast (using requestAnimationFrame, fast click, reduced GPU texture size during swipe, and other optimisations)</li>
@@ -210,6 +214,14 @@ swiper.onchange(callback).oninit(callback);
         <script type="text/javascript" src="static/swiper-do-swipe.js"></script>
         <script type="text/javascript" src="static/swiper-do-swipe-perspective.js"></script>
         <script type="text/javascript">
+            var select_element = document.getElementById("effect");
+            var change_effect = function(){
+                swiper.effect = swiper_do_swipe_effects[get_effect()];
+            }
+            var get_effect = function(){
+                return select_element.options[select_element.selectedIndex].value;
+            }
+            select_element.onchange = change_effect;
 
             var page_turn = function(event, $page, index){
                 console.log(event, $page, index);
@@ -217,7 +229,7 @@ swiper.onchange(callback).oninit(callback);
             
             var swiper = swiper_do_swipe(
                             document.querySelectorAll("body > section"),
-                            swiper_do_swipe_styles.perspective);
+                            swiper_do_swipe_effects[get_effect()]);
 
             swiper.onchange(page_turn).oninit(page_turn);
         </script>

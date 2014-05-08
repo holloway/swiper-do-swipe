@@ -1,7 +1,7 @@
 (function($){
 	"use strict";
 
-    window.swiper_do_swipe_styles.perspective = {
+    window.swiper_do_swipe_effects.perspective = {
         horizontal: function(pointer, value, $pages, index){
             var $page_current = $pages[index],
                 $page_before  = $pages[index - 1],

@@ -13,9 +13,9 @@
 
     // Call swiper_do_swipe() with these parameters,
     // $pages is an array of elements (not jQuery object, not nodeList - see index.html for how to do this if you want help),
-    // style is value in swiper_do_swipe_styles (below) e.g. swiper_do_swipe_styles.perspective
+    // effect is value in swiper_do_swipe_effects (below) e.g. swiper_do_swipe_effects.perspective
     // and options override the defaults (optional)
-    window.swiper_do_swipe = function($pages, style, options, onchange_callback){
+    window.swiper_do_swipe = function($pages, effect, options, onchange_callback){
         var property,
             _this;
 
@@ -37,7 +37,7 @@
             options: options,
             $pages:  $pages,
             index: 0,
-            style: style,
+            effect: effect,
             inertia_remaining: 0,
             init: function(){
                 this.init_$pages();
@@ -77,7 +77,7 @@
                     $page.style.position  = "absolute";
                     $page.style.overflow  = "hidden";
                     $page.style[css.transform_style] = "preserve-3d";
-                    if(_this.style.page_move_end) $page.addEventListener(css.transition_end, _this.style.page_move_end);
+                    if(_this.effect.page_move_end) $page.addEventListener(css.transition_end, _this.effect.page_move_end);
                 });
             },
             init_events: function(){
@@ -126,8 +126,8 @@
                     if(pointer.drag_direction !== false) return;
                     if(Math.abs(distance.x) > _this.options.page_turn_animate_at){
                         pointer.drag_direction = "horizontal";
-                        if(_this.style.reduce_size_during_horizontal_scroll !== false) reduce_size_before_horizontal_scroll(_this.$pages, _this.index, 0); // 25 is arbitrary, but this reduction in height shows the edges more
-                        if(_this.style.before_horizontal) _this.style.before_horizontal(_this.$pages, _this.index);
+                        if(_this.effect.reduce_size_during_horizontal_scroll !== false) reduce_size_before_horizontal_scroll(_this.$pages, _this.index, 0); // 25 is arbitrary, but this reduction in height shows the edges more
+                        if(_this.effect.before_horizontal) _this.effect.before_horizontal(_this.$pages, _this.index);
                     } else if(Math.abs(distance.y - $page_current.scroll_y) > _this.options.begin_scroll_at) {
                         pointer.drag_direction = "vertical";
                         $scrollbar.classList.add("animate");
@@ -143,7 +143,7 @@
 
                     switch(pointer.drag_direction){
                         case "horizontal":
-                            if(_this.style.horizontal) _this.style.horizontal(pointer, distance.x, $pages, _this.index);
+                            if(_this.effect.horizontal) _this.effect.horizontal(pointer, distance.x, $pages, _this.index);
                             break;
                         case "vertical":
                             $page = _this.$pages[_this.index];
@@ -173,8 +173,8 @@
                     pointer.animation_id = undefined;
                     switch(pointer.drag_direction){
                         case "horizontal":
-                            if(_this.style.reduce_size_during_horizontal_scroll !== false) _this.restore_size_after_horizontal_scroll();
-                            if(_this.style.after_horizontal) _this.style.after_horizontal(_this.$pages, index);
+                            if(_this.effect.reduce_size_during_horizontal_scroll !== false) _this.restore_size_after_horizontal_scroll();
+                            if(_this.effect.after_horizontal) _this.effect.after_horizontal(_this.$pages, index);
                             if(Math.abs(pointer.drag.distance.x) >= _this.options.page_turn_at) {
                                 index += (pointer.drag.distance.x < 0) ? -1 : 1;
                                 _this.trigger("change", _this.$pages[index], index);
@@ -213,10 +213,11 @@
             },
             touch: {
                 start: function(event){
-                    event.preventDefault(); // yes android swiping is that broken http://uihacker.blogspot.tw/2011/01/android-touchmove-event-bug.html
                     document.removeEventListener('mousedown', _this.mouse.start);
                     document.removeEventListener('mousemove', _this.mouse.move);
                     document.removeEventListener('mouseup',   _this.pointer.end);
+                    if(event.target.nodeName.toLowerCase() === "select") return;
+                    event.preventDefault(); // yes android swiping is that broken http://uihacker.blogspot.tw/2011/01/android-touchmove-event-bug.html
                     _this.pointer.drag.start.x = event.touches[0].clientX;
                     _this.pointer.drag.start.y = event.touches[0].clientY;
                     _this.pointer.start(event);
@@ -246,6 +247,7 @@
                     var position = _this.mouse.position(event),
                         pointer  = _this.pointer;
 
+                    if(event.target.nodeName.toLowerCase() === "select") return;
                     if(event.button === 2) return;
                     event.preventDefault();
                     pointer.drag.start.x = position.x;
@@ -275,7 +277,7 @@
                 var $pages = _this.$pages;
                 
                 i = Math.max(Math.min(i, $pages.length - 1), 0); // make sure we're not exceeding the range of $pages
-                _this.style.move_to_page($pages, i);
+                _this.effect.move_to_page($pages, i);
                 _this.index = i;
             },
             restore_size_after_horizontal_scroll: function(){
@@ -358,9 +360,9 @@
         }
     };
 
-    window.swiper_do_swipe_styles = {};
+    window.swiper_do_swipe_effects = {};
 
-    window.swiper_do_swipe_styles.flat = {
+    window.swiper_do_swipe_effects.flat = {
         horizontal: function(pointer, value, $pages, index){
             var $page_current = $pages[index],
                 $page_before  = $pages[index - 1],
