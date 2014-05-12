@@ -10,7 +10,11 @@
     <body>
         <section style="background:white">
             <h1>swiper-do-swipe.js <abbr title="version">v</abbr>0.5</h1>
-            <p>This software is for touch-screen web apps, and Phonegap-style apps, that want swiping and scrolling with 'pages' arranged like this</p>
+            <p><select id="effect">
+                <option value="flat">Flat</option>
+                <option value="perspective">Perspective</option>
+            </select>This software is for touch-screen web apps, and Phonegap-style apps, that want swiping and scrolling with 'pages' arranged like this</p>
+            <p id="touches">[]</p>
             <table border="1" class="device">
                 <tr>
                     <td class="here">Page1<br><small>you are here</small></td>
@@ -22,10 +26,8 @@
             <p>It supports Android, mobile Firefox, and iOS.</p>
             <h2>Demo</h2>
             <p>Swipe the page left or right, or up and down, with touch or mouse.</p>
-            <p>And choose a page effect if you want it <select id="effect">
-                <option value="flat">Flat</option>
-                <option value="perspective">Perspective</option>
-            </select></p>
+            <p>And choose a page effect if you want it </p>
+
             <h2>Features</h2>
             <ul>
                 <li>&bull; it's fast (using requestAnimationFrame, fast click, reduced GPU texture size during swipe, and other optimisations)</li>
@@ -224,11 +226,11 @@ swiper.onchange(callback).oninit(callback);
             select_element.onchange = change_effect;
 
             var page_turn = function(event, $page, index){
-                console.log(event, $page, index);
+                //console.log(event, $page, index);
             }
             
             var swiper = swiper_do_swipe(
-                            document.querySelectorAll("body > section"),
+                           document.querySelectorAll("body > section"),
                             swiper_do_swipe_effects[get_effect()]);
 
             swiper.onchange(page_turn).oninit(page_turn);

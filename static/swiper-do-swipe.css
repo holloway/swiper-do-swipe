@@ -6,6 +6,10 @@ html, body {
     overflow: hidden;
 }
 
+html.buggy-effects, body.buggy-effects {
+    overflow: scroll;
+}
+
 * {
     -webkit-user-select: none;
     -khtml-user-select: none;

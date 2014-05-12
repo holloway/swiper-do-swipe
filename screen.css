@@ -11,8 +11,13 @@ body > section {
     text-align:center;
 }
 
+body section h1 {
+    padding: 0px;
+    margin: 0px;
+}
+
 body > section ul {
-  list-style:none;
+    list-style:none;
 }
 
 pre {
