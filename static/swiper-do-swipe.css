@@ -48,4 +48,12 @@ input, textarea {
 
 .swiper-do-swipe-scrollbar.on {
     opacity: 1;
-} 
+}
+
+.swiper-do-swipe-css-transition > * {
+    -webkit-transition:all .4s ease-out;
+    -moz-transition:all .4s ease-out;
+    -ms-transition:all .4s ease-out;
+    -o-transition:all .4s ease-out;
+    transition:all .4s ease-out;
+}

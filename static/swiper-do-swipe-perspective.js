@@ -76,7 +76,7 @@
 
             if(this.has_been_setup) {
                 //because every subsequent call uses CSS transitions
-                document.body.classList.add("swiper-do-swipe-css-perspective-transition");
+                document.body.classList.add("swiper-do-swipe-css-transition");
             } else {
                 this.has_been_setup = true;
             }
@@ -105,7 +105,7 @@
             }
         },
         page_move_end: function(){
-            document.body.classList.remove("swiper-do-swipe-css-perspective-transition");
+            document.body.classList.remove("swiper-do-swipe-css-transition");
         }
     };
 

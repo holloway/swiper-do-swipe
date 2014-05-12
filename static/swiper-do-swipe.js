@@ -19,13 +19,12 @@
         var property,
             _this;
 
-        //ensure that $pages is just an array of elements
-        if($pages.jquery){
+        if($pages.jquery){ //ensure that $pages is just an array of elements
             $pages = $pages.get();
         } else if($pages instanceof NodeList){
             $pages = Array.prototype.slice.call($pages);
         }
-            
+
         options = options || {};
         for (property in defaults) {
             if (options.hasOwnProperty(property)) continue;
@@ -154,7 +153,6 @@
 
                     if(buggy_effects_on_android) return;
                     pointer.animation_id = window.requestAnimationFrame(pointer.animate);
-                    //if(last_distance && last_distance.x === distance.x && last_distance.y === distance.y) return;
                     switch(pointer.drag_direction){
                         case "horizontal":
                             if(_this.effect.horizontal) _this.effect.horizontal(pointer, distance.x, $pages, _this.index);
@@ -174,7 +172,6 @@
                             $scrollbar.style[css.transform] = "translateY(" + (distance.y * $page.scrollbar_ratio) + "px)";
                             break;
                     }
-                    pointer.last_distance = distance;
                 },
                 end: function(event){
                     var index    = _this.index,
@@ -185,7 +182,6 @@
                     pointer.dragging = false;
                     window.cancelAnimationFrame(pointer.animation_id);
                     pointer.animation_id = undefined;
-
                     switch(pointer.drag_direction){
                         case "horizontal":
                             if(_this.effect.reduce_size_during_horizontal_scroll !== false) _this.restore_size_after_horizontal_scroll();
@@ -230,13 +226,11 @@
                     document.removeEventListener('mousedown', _this.mouse.start);
                     document.removeEventListener('mousemove', _this.mouse.move);
                     document.removeEventListener('mouseup',   _this.pointer.end);
-
                     if(event.target.nodeName.toLowerCase() === "select") return;
                     if(!buggy_effects_on_android) event.preventDefault(); // yes android swiping is that broken http://uihacker.blogspot.tw/2011/01/android-touchmove-event-bug.html
                     _this.pointer.drag.start.x = event.touches[0].clientX;
                     _this.pointer.drag.start.y = event.touches[0].clientY;
                     _this.pointer.start(event);
-                    //document.getElementById("touches").innerHTML = "";
                 },
                 move: function(event){
                     if(!_this.pointer.dragging) return;
@@ -244,7 +238,6 @@
                     var pointer = _this.pointer;
                     pointer.drag.distance.x = pointer.drag.start.x - event.touches[0].clientX;
                     pointer.drag.distance.y = pointer.drag.start.y - event.touches[0].clientY;
-                    //document.getElementById("touches").innerHTML += event.touches[0].clientX + ":" + event.touches[0].clientY + " <br>";
                     pointer.move();
                 },
                 get_target: function(target){
@@ -454,7 +447,7 @@
 
             if(this.has_been_setup && css.transition_end) {
                 //because every subsequent call uses CSS transitions
-                document.body.classList.add("swiper-do-swipe-css-perspective-transition");
+                document.body.classList.add("swiper-do-swipe-css-transition");
             } else {
                 this.has_been_setup = true;
             }
@@ -486,7 +479,7 @@
             }
         },
         page_move_end: function(){
-            document.body.classList.remove("swiper-do-swipe-css-perspective-transition");
+            document.body.classList.remove("swiper-do-swipe-css-transition");
         }
     };
 
