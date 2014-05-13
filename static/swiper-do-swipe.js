@@ -333,7 +333,6 @@
             },
             inertia_scroll: function(){
                 var $page = _this.$pages[_this.index];
-
                 _this.inertia_remaining = _this.inertia_remaining * _this.options.decrease_inertia_per_frame_by;
                 $page.scroll_y += _this.inertia_remaining;
                 if($page.scroll_y < 0) {
@@ -341,6 +340,8 @@
                 } else if ($page.scroll_y > $page.scroll_limit) {
                     $page.scroll_y = $page.scroll_limit;
                 }
+                console.log(css.transform)
+                
                 $page.style[css.transform] = "translateY(" + -$page.scroll_y + "px)";
                 if(Math.abs(_this.inertia_remaining) > _this.options.stop_inertia_scrolling_at){
                     _this.pointer.animation_id = window.requestAnimationFrame(_this.inertia_scroll);
@@ -521,8 +522,8 @@
     window.css = {
          transform: find_css_name({
             webkitTransform: '-webkit-transform',
+            mozTransform:    '-moz-transform',
             OTransform:      '-o-transform',
-            MozTransform:    '-moz-transform',
             msTransform:     '-ms-transform',
             transform:       'transform'
         }),

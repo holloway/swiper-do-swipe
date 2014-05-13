@@ -10,13 +10,13 @@
 
             var page_current_value = negative * (Math.abs((value / window_width) * 2) * 90);
             if(negative > 0) {
-                $page_current.style[css.transform_origin] = "left center";
+                //$page_current.style[css.transform_origin] = "left center";
                 $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg) ";
-                $page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(left, #fff 70%,#ddd 100%)');
+                //$page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(left, #fff 70%,#ddd 100%)');
             } else {
-                $page_current.style[css.transform_origin] = "right center";
+                //$page_current.style[css.transform_origin] = "right center";
                 $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
-                $page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(right, #fff 70%,#ddd 100%)');
+                //$page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(right, #fff 70%,#ddd 100%)');
             }
             if($page_before && negative < 0){
                 var page_before_value = Math.abs(value / window_width);
