@@ -536,10 +536,10 @@
         }),
         transform_origin: find_css_name({
             webkitTransformOrigin: '-webkit-transform-origin',
+            MozTransformOrigin:    'transformOrigin',
+            transformOrigin:       'transform-origin',
             OTransformOrigin:      '-o-transform-origin',
-            MozTransformOrigin:    '-moz-transform-origin',
-            msTransformOrigin:     '-ms-transform-origin',
-            transformOrigin:       'transform-origin'
+            msTransformOrigin:     '-ms-transform-origin'
         }),
         transform_style: find_css_name({
             webkitTransformStyle: "-webkit-transform-style",
@@ -547,7 +547,20 @@
             mozTransformStyle:    "-moz-transform-style",
             msTransformStyle:     "-ms-transform-style",
             transformStyle:       "transform-style"
-        })
+        }),
+        linear_gradient: function(){
+            var prefix, i;
+            var prefixes = ["-webkit-","-o-","-moz-","-ms-",""];
+            var gradient_test = document.createElement("span");
+            for(i = 0; i < prefixes.length; i++){
+                prefix = prefixes[i];
+                gradient_test.style.backgroundImage = prefix + "linear-gradient(left top, #9f9, white)";
+                //alert("[" + prefix + "]:" + gradient_test.style.backgroundImage);
+                if(gradient_test.style.backgroundImage.indexOf("gradient") !== -1){
+                    return prefix + "linear-gradient(%)";
+                }
+            }
+        }()
     };
 
     (function() { // via except without stupid 'element' variable http://www.paulirish.com/2011/requestanimationframe-for-smart-animating/

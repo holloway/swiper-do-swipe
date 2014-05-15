@@ -10,13 +10,19 @@
 
             var page_current_value = negative * (Math.abs((value / window_width) * 2) * 90);
             if(negative > 0) {
-                //$page_current.style[css.transform_origin] = "left center";
-                $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg) ";
-                //$page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(left, #fff 70%,#ddd 100%)');
+                if(!this.direction || this.direction === "left"){
+                    $page_current.style[css.transform_origin] = "0% 50%";
+                    $page_current.style.backgroundImage = css.linear_gradient.replace(/%/, 'left, #fff 70%,#ccc 100%');
+                }
+                $page_current.style[css.transform] = "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg) ";
+                this.direction = "right";
             } else {
-                //$page_current.style[css.transform_origin] = "right center";
-                $page_current.style[css.transform] =        "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
-                //$page_current.style.backgroundImage = css.background_gradient.replace(/%/, '-webkit-linear-gradient(right, #fff 70%,#ddd 100%)');
+                if(!this.direction || this.direction === "right"){
+                    $page_current.style[css.transform_origin] = "100% 50%";
+                    $page_current.style.backgroundImage = css.linear_gradient.replace(/%/, 'right, #fff 70%,#ccc 100%');
+                }
+                $page_current.style[css.transform] = "perspective(" + window_width / 2 + "px) rotateY(" + page_current_value + "deg)";
+                this.direction = "left";
             }
             if($page_before && negative < 0){
                 var page_before_value = Math.abs(value / window_width);
@@ -38,7 +44,7 @@
                 $page_after  =  $pages[index + 1];
 
             window.reduce_size_before_horizontal_scroll($pages, index, 25);
-
+            this.direction = undefined;
             $page_current.style.opacity = 1;
             $page_current.style.zIndex = 2;
             $page_current.style.display = "";
@@ -108,7 +114,5 @@
             document.body.classList.remove("swiper-do-swipe-css-transition");
         }
     };
-
-    window.css.background_gradient = "%";
-
+    
 }());
