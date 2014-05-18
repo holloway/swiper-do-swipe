@@ -80,7 +80,6 @@
                     $page.scroll_y = 0;
                     $page.style.width     = "100%";
                     $page.style.minWidth  = "100%";
-                    $page.style.overflow  = "hidden";
                     $page.style.position  = "absolute";
                     $page.style[css.transform_style] = "preserve-3d";
                     if(_this.effect.page_move_end) $page.addEventListener(css.transition_end, _this.effect.page_move_end);
@@ -103,6 +102,7 @@
                 current_style: undefined,
                 start: function(event){
                     var pointer = _this.pointer,
+                        $page_current = _this.$pages[_this.index],
                         $page_before = _this.$pages[_this.index - 1],
                         $page_after  = _this.$pages[_this.index + 1];
 
@@ -110,12 +110,13 @@
                     pointer.drag.distance.x = 0;
                     pointer.drag.distance.y = _this.$pages[_this.index].scroll_y;
                     pointer.drag_direction = false;
+                    $page_current.scroll_limit = $page_current.offsetHeight - window_height;
                     if($page_before) {
                         $page_before.scroll_y = 0;
                         $page_before.style.marginTop = 0;
                     }
                     if($page_after) {
-                        $page_after .scroll_y = 0;
+                        $page_after.scroll_y = 0;
                         $page_after.style.marginTop = 0;
                     }
                     _this.latest_inertia_scroll_movements = [];
@@ -141,35 +142,35 @@
                         if(buggy_effects_on_android) return;
                         $scrollbar.classList.add("animate");
                         $scrollbar.classList.add("on");
-                        $page_current.scroll_limit = $page_current.offsetHeight - window_height;
+                        
+                        
                         $page_current.scrollbar_ratio = (window_height - $scrollbar.offsetHeight - scrollbar_buffer) / $page_current.scroll_limit;
                     }
                 },
                 animate: function(){ //called under a requestAnimationFrame at ~60fps, initially from pointer.start
                     var pointer  = _this.pointer,
                         distance = pointer.drag.distance,
-                        last_distance = pointer.last_distance,
-                        $page;
+                        $page_current;
 
                     if(buggy_effects_on_android) return;
                     pointer.animation_id = window.requestAnimationFrame(pointer.animate);
                     switch(pointer.drag_direction){
                         case "horizontal":
-                            if(_this.effect.horizontal) _this.effect.horizontal(pointer, distance.x, $pages, _this.index);
+                            if(_this.effect.horizontal) _this.effect.horizontal(pointer, distance.x, _this.$pages, _this.index);
                             break;
                         case "vertical":
-                            $page = _this.$pages[_this.index];
+                            $page_current = _this.$pages[_this.index];
                             if(distance.y < 0) {
                                  distance.y = 0;
-                            } else if (distance.y > $page.scroll_limit) {
-                                distance.y = $page.scroll_limit;
+                            } else if (distance.y > $page_current.scroll_limit) {
+                                distance.y = $page_current.scroll_limit;
                             }
                             _this.latest_inertia_scroll_movements.push(distance.y);
                             if(_this.latest_inertia_scroll_movements.length > _this.options.number_of_inertia_scroll_movements_to_capture + 1) { // +1 because we need one more entry to calculate movements
                                 _this.latest_inertia_scroll_movements.shift();
                             }
-                            $page.style[css.transform] = "translateY(" + -distance.y + "px)";
-                            $scrollbar.style[css.transform] = "translateY(" + (distance.y * $page.scrollbar_ratio) + "px)";
+                            $page_current.style[css.transform] = "translateY(" + -distance.y + "px)";
+                            $scrollbar.style[css.transform] = "translateY(" + (distance.y * $page_current.scrollbar_ratio) + "px)";
                             break;
                     }
                 },
@@ -226,7 +227,8 @@
                     document.removeEventListener('mousedown', _this.mouse.start);
                     document.removeEventListener('mousemove', _this.mouse.move);
                     document.removeEventListener('mouseup',   _this.pointer.end);
-                    if(event.target.nodeName.toLowerCase() === "select") return;
+                    
+                    if(is_form_widget(event.target)) return;
                     if(!buggy_effects_on_android) event.preventDefault(); // yes android swiping is that broken http://uihacker.blogspot.tw/2011/01/android-touchmove-event-bug.html
                     _this.pointer.drag.start.x = event.touches[0].clientX;
                     _this.pointer.drag.start.y = event.touches[0].clientY;
@@ -245,7 +247,7 @@
                     return target;
                 },
                 pseudo_event: function(target) {
-                    if(is_android && target.tagName.toUpperCase() === 'SELECT') return 'mousedown';
+                    if(is_android && target.tagName.toLowerCase() === 'select') return 'mousedown';
                     return 'click';
                 }
             },
@@ -255,7 +257,7 @@
                     var position = _this.mouse.position(event),
                         pointer  = _this.pointer;
 
-                    if(event.target.nodeName.toLowerCase() === "select") return;
+                    if(is_form_widget(event.target)) return;
                     if(event.button === 2) return;
                     if(!buggy_effects_on_android) event.preventDefault();
                     pointer.drag.start.x = position.x;
@@ -340,8 +342,6 @@
                 } else if ($page.scroll_y > $page.scroll_limit) {
                     $page.scroll_y = $page.scroll_limit;
                 }
-                console.log(css.transform)
-                
                 $page.style[css.transform] = "translateY(" + -$page.scroll_y + "px)";
                 if(Math.abs(_this.inertia_remaining) > _this.options.stop_inertia_scrolling_at){
                     _this.pointer.animation_id = window.requestAnimationFrame(_this.inertia_scroll);
@@ -395,7 +395,6 @@
             if(buggy_effects_on_android){
                 return;
             }
-
             var page_current_value = -value;
             $page_current.style[css.transform] = "translateX(" + page_current_value + "px) ";
             if($page_before && negative < 0){
@@ -591,5 +590,16 @@
     document.body.appendChild($scrollbar);
     $scrollbar.className = "swiper-do-swipe-scrollbar";
     var scrollbar_buffer = 20; // 10 pixels from top and bottom = 20 total
+
+    var is_form_widget = function(target){
+        if(!target || !target.nodeName) return false;
+        switch(target.nodeName.toLowerCase()){
+            case "select":
+            case "input":
+            case "textarea":
+                return true;
+        }
+        return false;
+    }
 
 }());

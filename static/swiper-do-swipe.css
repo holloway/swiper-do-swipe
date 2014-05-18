@@ -10,6 +10,7 @@ html.buggy-effects, body.buggy-effects {
     overflow: scroll;
 }
 
+/*
 * {
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -25,6 +26,7 @@ input, textarea {
     -o-user-select: text;
     user-select: text;
 }
+*/
 
 .swiper-do-swipe-scrollbar {
     width: 4px;
