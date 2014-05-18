@@ -38,7 +38,7 @@
             <pre>
 var swiper = swiper_do_swipe(
     $("section"),
-    swiper_do_swipe_effects.perspective
+    swiper_do_swipe_styles.perspective
 );
 
 var callback = function(event, $page, index){
