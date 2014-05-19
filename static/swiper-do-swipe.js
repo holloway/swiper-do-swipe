@@ -111,14 +111,6 @@
                     pointer.drag.distance.y = _this.$pages[_this.index].scroll_y;
                     pointer.drag_direction = false;
                     $page_current.scroll_limit = $page_current.offsetHeight - window_height;
-                    if($page_before) {
-                        $page_before.scroll_y = 0;
-                        $page_before.style.marginTop = 0;
-                    }
-                    if($page_after) {
-                        $page_after.scroll_y = 0;
-                        $page_after.style.marginTop = 0;
-                    }
                     _this.latest_inertia_scroll_movements = [];
                     if(pointer.animation_id){
                         window.cancelAnimationFrame(pointer.animation_id);
@@ -129,7 +121,6 @@
                     var pointer     = _this.pointer,
                         distance    = pointer.drag.distance,
                         $page_current = _this.$pages[_this.index];
-
                     distance.y += $page_current.scroll_y;
                     if(pointer.drag_direction !== false) return;
                     if(Math.abs(distance.x) > _this.options.page_turn_animate_at){
@@ -142,8 +133,6 @@
                         if(buggy_effects_on_android) return;
                         $scrollbar.classList.add("animate");
                         $scrollbar.classList.add("on");
-                        
-                        
                         $page_current.scrollbar_ratio = (window_height - $scrollbar.offsetHeight - scrollbar_buffer) / $page_current.scroll_limit;
                     }
                 },
@@ -178,7 +167,9 @@
                     var index    = _this.index,
                         pointer  = _this.pointer,
                         distance = pointer.drag.distance,
-                        $page_current;
+                        $page_current,
+                        $page_before,
+                        $page_after;
 
                     pointer.dragging = false;
                     window.cancelAnimationFrame(pointer.animation_id);
@@ -193,6 +184,9 @@
                             } else if(!buggy_effects_on_android) {
                                 $page_current = _this.$pages[index];
                                 $page_current.style[css.transform] = "translateY(" + -$page_current.scroll_y + "px)";
+                                $page_before = _this.$pages[index - 1];
+                                if($page_before) $page_before.style.display = "none";
+                                if($page_after) $page_after.style.display = "none";
                             }
                             break;
                         case "vertical":
@@ -200,7 +194,6 @@
                             $page_current = _this.$pages[index];
                             $page_current.scroll_y = distance.y;
                             _this.inertia_scroll_start();
-                            $scrollbar.classList.remove("on");
                             break;
                         default: // then the touch/click has ended without a horizontal/vertical scroll, so it's a 'click', so generate a fake event...
                             if(event.type.toLowerCase().match(/touchend/)){
@@ -283,24 +276,28 @@
                     };
                 }
             },
-            move_to_page: function(i){
+            move_to_page: function(i, scroll_to_top){
                 var $pages = _this.$pages,
+                    index,
                     $page_current,
                     $page_before,
-                    $page_after,
-                    index = _this.index;
-                
+                    $page_after;
+
                 _this.index = Math.max(Math.min(i, $pages.length - 1), 0); // make sure we're not exceeding the range of $pages
                 index = _this.index;
+                $page_current = $pages[index];
+                $page_before  = $pages[index - 1];
+                $page_after   = $pages[index + 1];
                 _this.trigger("change", _this.$pages[index], index);
                 if(buggy_effects_on_android){ // then avoid effects because they'll be broken
-                    $page_current = $pages[index];
-                    $page_before  = $pages[index - 1];
-                    $page_after   = $pages[index + 1];
                     $page_current.style.display = "block";
                     if($page_before) $page_before.style.display = "none";
                     if($page_after)  $page_after.style.display  = "none";
                     return;
+                }
+                if(scroll_to_top) {
+                    $page_current.scroll_y = 0;
+                    $page_current.style[css.transform] = "translateY(" + $page_current.scroll_y + "px)";
                 }
                 _this.effect.move_to_page($pages, index);
             },
@@ -343,8 +340,11 @@
                     $page.scroll_y = $page.scroll_limit;
                 }
                 $page.style[css.transform] = "translateY(" + -$page.scroll_y + "px)";
+                $scrollbar.style[css.transform] = "translateY(" + ($page.scroll_y * $page.scrollbar_ratio) + "px)";
                 if(Math.abs(_this.inertia_remaining) > _this.options.stop_inertia_scrolling_at){
                     _this.pointer.animation_id = window.requestAnimationFrame(_this.inertia_scroll);
+                } else {
+                    $scrollbar.classList.remove("on");
                 }
             },
             dispose: function(){
@@ -417,7 +417,7 @@
                 $page_after  =  $pages[index + 1];
 
             $page_current.style.opacity = 1;
-            $page_current.style.zIndex = 2;
+            $page_current.style.zIndex = 1;
             $page_current.style.display = "";
             $page_current.style[css.transform_origin] = "50% 50%";
             if($page_before) {
