@@ -3,7 +3,7 @@
 
     var defaults = {
             page_turn_at: 50, // horizontally, in pixels
-            page_turn_animate_at: 10, // horizontally, in pixels
+            page_turn_animate_at: 30, // horizontally, in pixels
             begin_scroll_at: 10, // begin scrolling, in pixels
             page_scroll_at: 10, //vertically, in pixels
             number_of_inertia_scroll_movements_to_capture: 5,
@@ -92,6 +92,7 @@
                 document.addEventListener('mousemove',  _this.mouse.move,  false);
                 document.addEventListener('touchend',   _this.pointer.end, false);
                 document.addEventListener('mouseup',    _this.pointer.end, false);
+                document.addEventListener('mousewheel', _this.mousewheel,  false);
                 if(buggy_effects_on_android) return;
                 document.addEventListener('scroll',     prevent_default,   false);
             },
@@ -195,7 +196,7 @@
                             $page_current.scroll_y = distance.y;
                             _this.inertia_scroll_start();
                             break;
-                        default: // then the touch/click has ended without a horizontal/vertical scroll, so it's a 'click', so generate a fake event...
+                        default: // then the touch/click has ended without a horizontal/vertical scroll, so it's a 'click', and generate a fake event...
                             if(event.type.toLowerCase().match(/touchend/)){
                                 var click_event = document.createEvent('MouseEvents');
                                 var target = _this.touch.get_target(event.target);
@@ -318,6 +319,11 @@
                     $page_after.style.minHeight = "100%";
                 }
             },
+            mousewheel: function(event){
+                if(!event.wheelDeltaY) return;
+                _this.latest_inertia_scroll_movements = [0, -event.wheelDeltaY / 20]; // 20 is an arbitrary number that feels like a normal mouse wheel scroll (on Ubuntu 13.10, in Chromium)
+                _this.inertia_scroll_start();
+            },
             inertia_scroll_start: function(){
                 var acceleration = [],
                     total = 0,
@@ -424,11 +430,13 @@
                 $page_before.style.opacity = 1;
                 $page_before.style.zIndex = 2;
                 $page_before.style.display = "";
+                $page_before.style.boxShadow = "0px 0px 30px #000000";
             }
             if($page_after) {
                 $page_after.style.opacity = 1;
                 $page_after.style.zIndex = 2;
                 $page_after.style.display = "";
+                $page_after.style.boxShadow = "0px 0px 30px #000000";
             }
         },
         after_horizontal: function($pages, index){
@@ -437,8 +445,15 @@
                 $page_after  =  $pages[index + 1];
 
             $page_current.style.backgroundImage = "";
-            if($page_before) $page_current.style.backgroundImage = "";
-            if($page_after) $page_current.style.backgroundImage = "";
+            $page_current.style.boxShadow = "none";
+            if($page_before) {
+                $page_before.style.backgroundImage = "";
+                $page_before.style.boxShadow = "none";
+            }
+            if($page_after) {
+                $page_after.style.backgroundImage = "";
+                $page_after.style.boxShadow = "none";
+            }
         },
         move_to_page: function($pages, i){
             var $page_current = $pages[i],

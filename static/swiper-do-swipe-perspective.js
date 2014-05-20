@@ -69,10 +69,10 @@
 
             $page_current.style.backgroundImage = "";
             if($page_before) {
-                $page_current.style.backgroundImage = "";
+                $page_before.style.backgroundImage = "";
             }
             if($page_after) {
-                $page_current.style.backgroundImage = "";
+                $page_after.style.backgroundImage = "";
             }
         },
         move_to_page: function($pages, i){
